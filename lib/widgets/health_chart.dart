@@ -9,7 +9,6 @@ class HealthChart extends StatelessWidget {
   final IndicatorType type;
   final List<HealthRecord> records;
   final IndicatorType _selectedType;
-  static final dateFormat = DateFormat('MM-dd HH:mm');
 
   const HealthChart({
     super.key,
@@ -26,14 +25,13 @@ class HealthChart extends StatelessWidget {
 
     records.sort((a, b) => a.timestamp.compareTo(b.timestamp));
     
-    // 如果记录少于2条，使用默认间隔
     if (records.length < 2) {
       return const Center(child: Text('需要至少两条记录才能显示图表'));
     }
 
     final minTime = records.first.timestamp;
     final maxTime = records.last.timestamp;
-    
+
     final adjustedMinTime = DateTime(
       minTime.year,
       minTime.month,
@@ -41,7 +39,7 @@ class HealthChart extends StatelessWidget {
       minTime.hour,
       (minTime.minute ~/ 30) * 30,
     );
-    
+
     final diffMinutes = maxTime.difference(adjustedMinTime).inMinutes;
     // 确保 diffMinutes 至少为 30，避免间隔为 0
     final interval = max(30.0, ((diffMinutes + 29) / 30).ceil() * 30 / 5);
@@ -56,6 +54,7 @@ class HealthChart extends StatelessWidget {
     final minY = (yValues.reduce(min) ~/ 10) * 10.0;
     final maxY = ((yValues.reduce(max) + 9) ~/ 10) * 10.0;
     final yInterval = max(5.0, ((maxY - minY + 4) / 5).ceil() * 5.0);
+    final diffDays = maxTime.difference(minTime).inDays;
 
     return Column(
       children: [
@@ -88,12 +87,27 @@ class HealthChart extends StatelessWidget {
                       showTitles: true,
                       getTitlesWidget: (value, meta) {
                         final date = adjustedMinTime.add(
-                          Duration(minutes: (value ~/ 1) * 30),
+                          Duration(minutes: (value ~/ 1)),
                         );
+
+                        // DateTime date = adjustedMinTime.add(Duration(minutes: (value.toInt())));
+                        String formattedDate;
+
+                        // Determine the format based on the range
+                        if (diffDays < 7) {
+                          formattedDate = DateFormat('yyyy-MM-dd').format(date); // Daily
+                        } else if (diffDays < 30) {
+                          formattedDate = DateFormat('MM-dd').format(date); // Weekly
+                        } else if (diffDays < 365) {
+                          formattedDate = DateFormat('yyyy-MM').format(date); // Monthly
+                        } else {
+                          formattedDate = DateFormat('yyyy').format(date); // Yearly
+                        }
+
                         return Padding(
                           padding: const EdgeInsets.all(4.0),
                           child: Text(
-                            HealthChart.dateFormat.format(date),
+                            formattedDate,
                             style: const TextStyle(fontSize: 10),
                           ),
                         );

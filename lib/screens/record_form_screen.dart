@@ -73,7 +73,7 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
         elevation: 0,
         backgroundColor: Colors.white,
         title: Text(
-          widget.record == null ? Localization.translate('add_record') ?? 'Add Record' : Localization.translate('edit_record') ?? 'Edit Record',
+          widget.record == null ? Localization.translate('add_record') : Localization.translate('edit_record'),
           style: const TextStyle(
             color: Colors.black87,
             fontSize: 20,
@@ -92,7 +92,7 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
                 Card(
                   elevation: 0,
                   child: ListTile(
-                    title: Text(Localization.translate('record_time') ?? 'Record Time'),
+                    title: Text(Localization.translate('record_time')),
                     subtitle: Text(
                       DateFormat('yyyy-MM-dd HH:mm').format(_selectedDateTime),
                     ),
@@ -130,7 +130,7 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
                       ),
                     ),
                     onPressed: _saveRecord,
-                    child: Text(widget.record == null ? Localization.translate('add_record') ?? 'Add Record' : Localization.translate('save') ?? 'Save'), // Use localized string
+                    child: Text(widget.record == null ? Localization.translate('add_record') : Localization.translate('save')), // Use localized string
                   ),
                 ),
               ],
@@ -165,7 +165,7 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
       keyboardType: TextInputType.number,
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return Localization.translate('enter_value')?.replaceAll('{label}', label) ?? 'Please enter $label'; // Use localized string
+          return Localization.translate('enter_value').replaceAll('{label}', label); // Use localized string
         }
         return null;
       },

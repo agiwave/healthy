@@ -9,8 +9,6 @@ import '../database/database_helper.dart';
 import 'indicator_types_screen.dart';
 import '../models/health_record.dart';
 import '../utils/localization.dart'; // Import the localization utility
-import 'package:provider/provider.dart'; // Import provider
-import '../providers/locale_provider.dart'; // Import the locale provider
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -76,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     await Clipboard.setData(ClipboardData(text: buffer.toString()));
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(Localization.translate('data_cleared') ?? 'Data exported to clipboard')),
+      SnackBar(content: Text(Localization.translate('data_cleared'))),
     );
   }
 
@@ -102,14 +100,14 @@ class _HomeScreenState extends State<HomeScreen> {
           }
         }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(Localization.translate('data_imported') ?? 'Data imported')),
+          SnackBar(content: Text(Localization.translate('data_imported'))),
         );
 
         _refreshData();
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(Localization.translate('no_data_in_clipboard') ?? 'No data in clipboard')),
+        SnackBar(content: Text(Localization.translate('no_data_in_clipboard'))),
       );
     }
   }
@@ -117,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _clearData() async {
     await DatabaseHelper.instance.clearRecords(_selectedType.code);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(Localization.translate('data_cleared') ?? 'Data cleared')),
+      SnackBar(content: Text(Localization.translate('data_cleared'))),
     );
 
     _refreshData();
@@ -169,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           const Icon(Icons.settings, size: 18),
                           const SizedBox(width: 8),
-                          Text(Localization.translate('manage_indicators') ?? 'Manage Indicators'), // Use localized string
+                          Text(Localization.translate('manage_indicators')), // Use localized string
                         ],
                       ),
                     ),
@@ -197,19 +195,19 @@ class _HomeScreenState extends State<HomeScreen> {
             itemBuilder: (context) => [
               PopupMenuItem<String>(
                 value: 'export',
-                child: Text(Localization.translate('export') ?? 'Export'), // Use localized string
+                child: Text(Localization.translate('export')), // Use localized string
               ),
               PopupMenuItem<String>(
                 value: 'import',
-                child: Text(Localization.translate('import') ?? 'Import'), // Use localized string
+                child: Text(Localization.translate('import')), // Use localized string
               ),
               PopupMenuItem<String>(
                 value: 'clear',
-                child: Text(Localization.translate('clear') ?? 'Clear'), // Use localized string
+                child: Text(Localization.translate('clear')), // Use localized string
               ),
               PopupMenuItem<String>(
                 value: 'change_language',
-                child: Text(Localization.translate('change_language') ?? 'Change Language'), // Use localized string
+                child: Text(Localization.translate('change_language')), // Use localized string
               ),
             ],
             onSelected: (value) {
@@ -288,7 +286,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _refreshData();
         },
         icon: const Icon(Icons.add),
-        label: Text(Localization.translate('add_record') ?? 'Add Record'), // Use localized string
+        label: Text(Localization.translate('add_record')), // Use localized string
         elevation: 2,
       ),
     );

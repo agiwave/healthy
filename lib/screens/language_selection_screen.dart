@@ -10,7 +10,7 @@ class LanguageSelectionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(Localization.translate('change_language') ?? 'Change Language'),
+        title: Text(Localization.translate('change_language')),
       ),
       body: ListView(
         children: [
