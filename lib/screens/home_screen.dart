@@ -15,7 +15,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String _selectedType = 'blood_pressure';
+  late IndicatorType _selectedType;
   bool _isInitialized = false;
   late Future<List<HealthRecord>> _recordsFuture;
 
@@ -28,7 +28,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _initDatabase() async {
     await DatabaseHelper.instance.database;
     if (mounted) {
+      final types = await DatabaseHelper.instance.getIndicatorTypes();
       setState(() {
+        _selectedType = types.first;
         _isInitialized = true;
         _loadRecords();
       });
@@ -36,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _loadRecords() {
-    _recordsFuture = DatabaseHelper.instance.getRecords(_selectedType);
+    _recordsFuture = DatabaseHelper.instance.getRecords(_selectedType.code);
   }
 
   void _refreshData() {
@@ -45,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _onTypeChanged(String type) {
+  void _onTypeChanged(IndicatorType type) {
     setState(() {
       _selectedType = type;
       _loadRecords();
@@ -65,64 +67,55 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
-        title: const Text(
-          '健康指标监测',
-          style: TextStyle(
+        centerTitle: true,
+        title: Text(
+          _selectedType.name,
+          style: const TextStyle(
             color: Colors.black87,
             fontSize: 20,
             fontWeight: FontWeight.w500,
           ),
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: FutureBuilder<List<IndicatorType>>(
-              future: DatabaseHelper.instance.getIndicatorTypes(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Center(
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+          FutureBuilder<List<IndicatorType>>(
+            future: DatabaseHelper.instance.getIndicatorTypes(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const CircularProgressIndicator();
+              }
+              final types = snapshot.data!;
+              return PopupMenuButton<IndicatorType>(
+                icon: const Icon(Icons.more_vert, color: Colors.black87),
+                itemBuilder: (context) => [
+                  ...types.map((type) => PopupMenuItem(
+                    value: type,
+                    child: Text(type.name),
+                  )),
+                  PopupMenuItem<IndicatorType>(
+                    value: IndicatorType(code: '__', name: '', unit:'', isMultiValue: false, value1Name: ''),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.settings, size: 18),
+                        SizedBox(width: 8),
+                        Text('管理指标'),
+                      ],
                     ),
-                  );
-                }
-
-                final types = snapshot.data!;
-                return PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert, color: Colors.black87),
-                  itemBuilder: (context) => [
-                    ...types.map((type) => PopupMenuItem(
-                      value: type.code,
-                      child: Text(type.name),
-                    )),
-                    const PopupMenuItem(
-                      value: 'manage',
-                      child: Row(
-                        children: [
-                          Icon(Icons.settings, size: 18),
-                          SizedBox(width: 8),
-                          Text('管理指标'),
-                        ],
+                  ),
+                ],
+                onSelected: (value) {
+                  if (value.code == '__') {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const IndicatorTypesScreen(),
                       ),
-                    ),
-                  ],
-                  onSelected: (value) {
-                    if (value == 'manage') {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const IndicatorTypesScreen(),
-                        ),
-                      ).then((_) => _refreshData());  // 管理指标后刷新数据
-                    } else {
-                      _onTypeChanged(value);  // 使用新方法处理类型切换
-                    }
-                  },
-                );
-              },
-            ),
+                    ).then((_) => _refreshData());
+                  } else {
+                    _onTypeChanged(value);
+                  }
+                },
+              );
+            },
           ),
         ],
       ),
@@ -145,8 +138,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: HealthChart(
-                    type: _selectedType,
+                    type: _selectedType.code,
                     records: records,
+                    selectedType: _selectedType,
                   ),
                 ),
               ),
@@ -159,10 +153,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: RecordList(
-                    type: _selectedType,
+                    type: _selectedType.code,
                     records: records,
                     onRecordDeleted: _refreshData,
                     onRecordEdited: _refreshData,
+                    selectedType: _selectedType,
                   ),
                 ),
               ),
@@ -175,10 +170,10 @@ class _HomeScreenState extends State<HomeScreen> {
           await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => RecordFormScreen(type: _selectedType),
+              builder: (context) => RecordFormScreen(type: _selectedType.code),
             ),
           );
-          _refreshData();  // 使用刷新方法替代 setState
+          _refreshData();
         },
         icon: const Icon(Icons.add),
         label: const Text('添加记录'),

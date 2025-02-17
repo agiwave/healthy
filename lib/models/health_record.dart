@@ -1,17 +1,15 @@
 class HealthRecord {
   final int? id;
-  final String type; // 'blood_pressure' 或 'heart_rate'
-  final double value;
-  final double? systolic; // 收缩压
-  final double? diastolic; // 舒张压
+  final String type;
+  final double value1;  // 主要值（血压时为收缩压，心率时为心率值）
+  final double? value2; // 次要值（血压时为舒张压，心率时为null）
   final DateTime timestamp;
 
   HealthRecord({
     this.id,
     required this.type,
-    required this.value,
-    this.systolic,
-    this.diastolic,
+    required this.value1,
+    this.value2,
     required this.timestamp,
   });
 
@@ -19,9 +17,8 @@ class HealthRecord {
     return {
       'id': id,
       'type': type,
-      'value': value,
-      'systolic': systolic,
-      'diastolic': diastolic,
+      'value1': value1,
+      'value2': value2,
       'timestamp': timestamp.toIso8601String(),
     };
   }
@@ -30,9 +27,8 @@ class HealthRecord {
     return HealthRecord(
       id: map['id'],
       type: map['type'],
-      value: map['value'],
-      systolic: map['systolic'],
-      diastolic: map['diastolic'],
+      value1: map['value1'],
+      value2: map['value2'],
       timestamp: DateTime.parse(map['timestamp']),
     );
   }

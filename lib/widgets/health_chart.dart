@@ -3,17 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../models/health_record.dart';
+import '../models/indicator_type.dart';
 
 class HealthChart extends StatelessWidget {
   final String type;
   final List<HealthRecord> records;
+  final IndicatorType _selectedType;
   static final dateFormat = DateFormat('MM-dd HH:mm');
 
   const HealthChart({
     super.key,
     required this.type,
     required this.records,
-  });
+    required IndicatorType selectedType,
+  }) : _selectedType = selectedType;
 
   @override
   Widget build(BuildContext context) {
@@ -45,8 +48,8 @@ class HealthChart extends StatelessWidget {
 
     // 计算纵轴范围和间隔
     final yValues = records.expand<double>((record) => [
-      type == 'blood_pressure' ? record.systolic! : record.value,
-      if (type == 'blood_pressure') record.diastolic!,
+      record.value1,
+      if (type == 'blood_pressure' && record.value2 != null) record.value2!,
     ]).toList();
 
     // 确保有最小范围
@@ -62,16 +65,16 @@ class HealthChart extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildLegendItem('收缩压', Colors.blue),
+                _buildLegendItem(_selectedType.value1Name, Colors.blue),
                 const SizedBox(width: 20),
-                _buildLegendItem('舒张压', Colors.red),
+                _buildLegendItem(_selectedType.value2Name!, Colors.red),
               ],
             ),
           )
         else
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: _buildLegendItem('心率', Colors.blue),
+            child: _buildLegendItem(_selectedType.value1Name, Colors.blue),
           ),
         Expanded(
           child: Padding(
@@ -123,12 +126,7 @@ class HealthChart extends StatelessWidget {
                           .difference(adjustedMinTime)
                           .inMinutes
                           .toDouble();
-                      return FlSpot(
-                        minutes,
-                        type == 'blood_pressure'
-                            ? record.systolic!
-                            : record.value,
-                      );
+                      return FlSpot(minutes, record.value1);
                     }).toList(),
                     isCurved: true,
                     color: Colors.blue,
@@ -141,7 +139,7 @@ class HealthChart extends StatelessWidget {
                             .difference(adjustedMinTime)
                             .inMinutes
                             .toDouble();
-                        return FlSpot(minutes, record.diastolic!);
+                        return FlSpot(minutes, record.value2!);
                       }).toList(),
                       isCurved: true,
                       color: Colors.red,

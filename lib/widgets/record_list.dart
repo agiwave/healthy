@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:health_tracker/models/indicator_type.dart';
 import '../models/health_record.dart';
 import '../database/database_helper.dart';
 import '../screens/record_form_screen.dart';
@@ -9,6 +10,7 @@ class RecordList extends StatelessWidget {
   final List<HealthRecord> records;
   final VoidCallback onRecordDeleted;
   final VoidCallback onRecordEdited;
+  final IndicatorType selectedType;
 
   const RecordList({
     super.key,
@@ -16,6 +18,7 @@ class RecordList extends StatelessWidget {
     required this.records,
     required this.onRecordDeleted,
     required this.onRecordEdited,
+    required this.selectedType,
   });
 
   @override
@@ -66,8 +69,8 @@ class RecordList extends StatelessWidget {
             contentPadding: EdgeInsets.zero,
             title: Text(
               type == 'blood_pressure'
-                  ? '${record.systolic}/${record.diastolic} mmHg'
-                  : '${record.value} bpm',
+                  ? '${record.value1}/${record.value2} ${selectedType.unit}'
+                  : '${record.value1} ${selectedType.unit}',
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,

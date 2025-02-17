@@ -52,7 +52,8 @@ class DatabaseHelper {
               'name': '血压',
               'unit': 'mmHg',
               'is_multi_value': 1,
-              'secondary_name': '舒张压'
+              'value1_name': '收缩压',
+              'value2_name': '舒张压'
             });
 
             await db.insert('indicator_types', {
@@ -60,7 +61,8 @@ class DatabaseHelper {
               'name': '心率',
               'unit': 'bpm',
               'is_multi_value': 0,
-              'secondary_name': null
+              'value1_name': '心率值',
+              'value2_name': null
             });
           }
         }
@@ -77,7 +79,8 @@ class DatabaseHelper {
         name TEXT NOT NULL,
         unit TEXT NOT NULL,
         is_multi_value INTEGER NOT NULL DEFAULT 0,
-        secondary_name TEXT
+        value1_name TEXT NOT NULL,
+        value2_name TEXT
       )
     ''');
 
@@ -86,9 +89,8 @@ class DatabaseHelper {
       CREATE TABLE health_records(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         type TEXT NOT NULL,
-        value REAL NOT NULL,
-        systolic REAL,
-        diastolic REAL,
+        value1 REAL NOT NULL,
+        value2 REAL,
         timestamp TEXT NOT NULL,
         FOREIGN KEY (type) REFERENCES indicator_types(code)
       )

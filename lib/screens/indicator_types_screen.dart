@@ -152,7 +152,8 @@ class _IndicatorTypeDialogState extends State<IndicatorTypeDialog> {
   late TextEditingController _codeController;
   late TextEditingController _nameController;
   late TextEditingController _unitController;
-  late TextEditingController _secondaryNameController;
+  late TextEditingController _value1NameController;
+  late TextEditingController _value2NameController;
   late bool _isMultiValue;
 
   @override
@@ -161,9 +162,8 @@ class _IndicatorTypeDialogState extends State<IndicatorTypeDialog> {
     _codeController = TextEditingController(text: widget.type?.code ?? '');
     _nameController = TextEditingController(text: widget.type?.name ?? '');
     _unitController = TextEditingController(text: widget.type?.unit ?? '');
-    _secondaryNameController = TextEditingController(
-      text: widget.type?.secondaryName ?? '',
-    );
+    _value1NameController = TextEditingController(text: widget.type?.value1Name ?? '');
+    _value2NameController = TextEditingController(text: widget.type?.value2Name ?? '');
     _isMultiValue = widget.type?.isMultiValue ?? false;
   }
 
@@ -178,7 +178,7 @@ class _IndicatorTypeDialogState extends State<IndicatorTypeDialog> {
             TextField(
               controller: _codeController,
               decoration: const InputDecoration(labelText: '代码'),
-              enabled: widget.type == null,  // 编辑时不允许修改代码
+              enabled: widget.type == null,
             ),
             TextField(
               controller: _nameController,
@@ -187,6 +187,10 @@ class _IndicatorTypeDialogState extends State<IndicatorTypeDialog> {
             TextField(
               controller: _unitController,
               decoration: const InputDecoration(labelText: '单位'),
+            ),
+            TextField(
+              controller: _value1NameController,
+              decoration: const InputDecoration(labelText: '第一个值的名称'),
             ),
             CheckboxListTile(
               title: const Text('是否有两个值'),
@@ -199,7 +203,7 @@ class _IndicatorTypeDialogState extends State<IndicatorTypeDialog> {
             ),
             if (_isMultiValue)
               TextField(
-                controller: _secondaryNameController,
+                controller: _value2NameController,
                 decoration: const InputDecoration(labelText: '第二个值的名称'),
               ),
           ],
@@ -215,7 +219,7 @@ class _IndicatorTypeDialogState extends State<IndicatorTypeDialog> {
             if (_nameController.text.isEmpty ||
                 _codeController.text.isEmpty ||
                 _unitController.text.isEmpty ||
-                (_isMultiValue && _secondaryNameController.text.isEmpty)) {
+                (_isMultiValue && _value2NameController.text.isEmpty)) {
               return;
             }
 
@@ -225,8 +229,8 @@ class _IndicatorTypeDialogState extends State<IndicatorTypeDialog> {
               name: _nameController.text,
               unit: _unitController.text,
               isMultiValue: _isMultiValue,
-              secondaryName:
-                  _isMultiValue ? _secondaryNameController.text : null,
+              value1Name: _value1NameController.text,
+              value2Name: _isMultiValue ? _value2NameController.text : null,
             );
 
             Navigator.pop(context, type);
@@ -242,7 +246,8 @@ class _IndicatorTypeDialogState extends State<IndicatorTypeDialog> {
     _codeController.dispose();
     _nameController.dispose();
     _unitController.dispose();
-    _secondaryNameController.dispose();
+    _value1NameController.dispose();
+    _value2NameController.dispose();
     super.dispose();
   }
 } 

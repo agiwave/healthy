@@ -28,13 +28,13 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
   void initState() {
     super.initState();
     _valueController = TextEditingController(
-      text: widget.record?.value.toString() ?? '',
+      text: widget.record?.value1.toString() ?? '',
     );
     _systolicController = TextEditingController(
-      text: widget.record?.systolic?.toString() ?? '',
+      text: widget.record?.value1.toString() ?? '',
     );
     _diastolicController = TextEditingController(
-      text: widget.record?.diastolic?.toString() ?? '',
+      text: widget.record?.value2?.toString() ?? '',
     );
     _selectedDateTime = widget.record?.timestamp ?? DateTime.now();
   }
@@ -180,13 +180,10 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
     final record = HealthRecord(
       id: widget.record?.id,
       type: widget.type,
-      value: widget.type == 'blood_pressure'
+      value1: widget.type == 'blood_pressure'
           ? double.parse(_systolicController.text)
           : double.parse(_valueController.text),
-      systolic: widget.type == 'blood_pressure'
-          ? double.parse(_systolicController.text)
-          : null,
-      diastolic: widget.type == 'blood_pressure'
+      value2: widget.type == 'blood_pressure'
           ? double.parse(_diastolicController.text)
           : null,
       timestamp: _selectedDateTime,
