@@ -1,0 +1,14 @@
+{
+  "app_title": "健康追踪器",
+  "export": "导出",
+  "import": "导入",
+  "clear": "清空",
+  "data_cleared": "数据已清空",
+  "data_imported": "数据已导入",
+  "no_data_in_clipboard": "剪贴板没有数据",
+  "manage_indicators": "管理指标",
+  "add_record": "添加记录",
+  "change_language": "语言",
+  "enter_value": "请输入{label}",
+  "record_time": "记录时间"
+}

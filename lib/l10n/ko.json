@@ -1,0 +1,14 @@
+{
+  "app_title": "건강 추적기",
+  "export": "내보내기",
+  "import": "가져오기",
+  "clear": "지우기",
+  "data_cleared": "데이터가 지워졌습니다",
+  "data_imported": "데이터가 가져와졌습니다",
+  "no_data_in_clipboard": "클립보드에 데이터가 없습니다",
+  "manage_indicators": "지표 관리",
+  "add_record": "기록 추가",
+  "change_language": "언어",
+  "enter_value": "{label}을 입력하세요",
+  "record_time": "기록 시간"
+}

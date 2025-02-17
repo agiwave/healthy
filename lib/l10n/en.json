@@ -1,0 +1,14 @@
+{
+  "app_title": "Health Tracker",
+  "export": "Export",
+  "import": "Import",
+  "clear": "Clear",
+  "data_cleared": "Data cleared",
+  "data_imported": "Data imported",
+  "no_data_in_clipboard": "No data in clipboard",
+  "manage_indicators": "Manage Indicators",
+  "add_record": "Add Record",
+  "change_language": "Language",
+  "enter_value": "Please enter {label}",
+  "record_time": "Record Time"
+}

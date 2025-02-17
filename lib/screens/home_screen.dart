@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Import for Clipboard
+import 'package:health_tracker/screens/language_selection_screen.dart';
 import '../widgets/health_chart.dart';
 import '../widgets/record_list.dart';
 import 'record_form_screen.dart';
@@ -7,6 +8,9 @@ import '../models/indicator_type.dart';
 import '../database/database_helper.dart';
 import 'indicator_types_screen.dart';
 import '../models/health_record.dart';
+import '../utils/localization.dart'; // Import the localization utility
+import 'package:provider/provider.dart'; // Import provider
+import '../providers/locale_provider.dart'; // Import the locale provider
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -56,47 +60,39 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _exportData() async {
-    // Fetch the data for the selected indicator
     final records = await DatabaseHelper.instance.getRecords(_selectedType.code);
-    
-    // Convert records to a string format (e.g., CSV)
     StringBuffer buffer = StringBuffer();
-    if(_selectedType.isMultiValue){
+    if (_selectedType.isMultiValue) {
       buffer.writeln('Timestamp,Major Value,Minor Value'); // Header
       for (var record in records) {
         buffer.writeln('${record.timestamp},${record.majorValue},${record.minorValue}');
       }
-    }else{
+    } else {
       buffer.writeln('Timestamp,Major Value'); // Header
       for (var record in records) {
         buffer.writeln('${record.timestamp},${record.majorValue}');
       }
     }
 
-    // Copy to clipboard
     await Clipboard.setData(ClipboardData(text: buffer.toString()));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('数据已导出到剪贴板')), // "Data exported to clipboard"
+      SnackBar(content: Text(Localization.translate('data_cleared') ?? 'Data exported to clipboard')),
     );
   }
 
   Future<void> _importData() async {
-    // Get data from clipboard
     final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
     if (clipboardData?.text != null) {
       String? data = clipboardData!.text;
       if (data != null && data.isNotEmpty) {
-        // Parse the data (assuming CSV format)
         List<String> lines = data.split('\n');
         for (var line in lines.skip(1)) { // Skip header
           if (line.isNotEmpty) {
             List<String> values = line.split(',');
-            // Assuming the format is correct, you can create a HealthRecord
             DateTime timestamp = DateTime.parse(values[0]);
             double majorValue = double.parse(values[1]);
             double? minorValue = values.length > 2 ? double.parse(values[2]) : null;
 
-            // Insert into the database
             await DatabaseHelper.instance.insertRecord(HealthRecord(
               timestamp: timestamp,
               majorValue: majorValue,
@@ -106,30 +102,27 @@ class _HomeScreenState extends State<HomeScreen> {
           }
         }
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('数据已导入')), // "Data imported"
+          SnackBar(content: Text(Localization.translate('data_imported') ?? 'Data imported')),
         );
 
-        // Refresh the data list and chart after import
         _refreshData();
       }
     } else {
-      // Handle the case where clipboard data is null or empty
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('剪贴板没有数据')), // "No data in clipboard"
+        SnackBar(content: Text(Localization.translate('no_data_in_clipboard') ?? 'No data in clipboard')),
       );
     }
   }
 
   Future<void> _clearData() async {
-    // Clear data for the selected indicator
     await DatabaseHelper.instance.clearRecords(_selectedType.code);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('数据已清空')), // "Data cleared"
+      SnackBar(content: Text(Localization.translate('data_cleared') ?? 'Data cleared')),
     );
 
-    // Refresh the data list and chart after clearing
     _refreshData();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -172,11 +165,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     )),
                     PopupMenuItem<IndicatorType>(
                       value: IndicatorType(code: '__', name: '', unit: '', isMultiValue: false, majorValueName: ''),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(Icons.settings, size: 18),
-                          SizedBox(width: 8),
-                          Text('管理指标'), // "Manage Indicators"
+                          const Icon(Icons.settings, size: 18),
+                          const SizedBox(width: 8),
+                          Text(Localization.translate('manage_indicators') ?? 'Manage Indicators'), // Use localized string
                         ],
                       ),
                     ),
@@ -199,32 +192,40 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
-          PopupMenuButton(
+          PopupMenuButton<String>(
             icon: const Icon(Icons.add), // Plus icon
             itemBuilder: (context) => [
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'export',
-                child: Text('导出'), // "Export Data"
+                child: Text(Localization.translate('export') ?? 'Export'), // Use localized string
               ),
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'import',
-                child: Text('导入'), // "Import Data"
+                child: Text(Localization.translate('import') ?? 'Import'), // Use localized string
               ),
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'clear',
-                child: Text('清空'), // "Clear Data"
+                child: Text(Localization.translate('clear') ?? 'Clear'), // Use localized string
+              ),
+              PopupMenuItem<String>(
+                value: 'change_language',
+                child: Text(Localization.translate('change_language') ?? 'Change Language'), // Use localized string
               ),
             ],
             onSelected: (value) {
               if (value == 'export') {
-                // Handle export and import actions
                 _exportData(); // Call export function
               } else if (value == 'import') {
-                // Call import function
                 _importData(); // Call import function
               } else if (value == 'clear') {
-                // Call clear data function
                 _clearData(); // Call clear data function
+              } else if (value == 'change_language') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LanguageSelectionScreen(),
+                  ),
+                ).then((_) => {});
               }
             },
           ),
@@ -287,9 +288,9 @@ class _HomeScreenState extends State<HomeScreen> {
           _refreshData();
         },
         icon: const Icon(Icons.add),
-        label: const Text('添加记录'), // "Add Record"
+        label: Text(Localization.translate('add_record') ?? 'Add Record'), // Use localized string
         elevation: 2,
       ),
     );
   }
-} 
+}

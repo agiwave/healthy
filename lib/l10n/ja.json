@@ -1,0 +1,14 @@
+{
+  "app_title": "健康トラッカー",
+  "export": "エクスポート",
+  "import": "インポート",
+  "clear": "クリア",
+  "data_cleared": "データがクリアされました",
+  "data_imported": "データがインポートされました",
+  "no_data_in_clipboard": "クリップボードにデータがありません",
+  "manage_indicators": "指標を管理",
+  "add_record": "レコードを追加",
+  "change_language": "言語",
+  "enter_value": "{label}を入力してください",
+  "record_time": "記録時間"
+}

@@ -15,7 +15,10 @@ dependencies:
   path: ^1.8.3
   fl_chart: ^0.65.0
   path_provider: ^2.1.1
-  intl: ^0.18.0
+  intl: ^0.19.0
+  flutter_localizations:
+    sdk: flutter
+  provider: ^6.0.0
 
 dev_dependencies:
   flutter_test:
@@ -37,4 +40,9 @@ flutter_icons:
     icon_size: 48
 
 flutter:
-  uses-material-design: true 
+  uses-material-design: true
+  assets:
+    - lib/l10n/en.json
+    - lib/l10n/zh.json 
+    - lib/l10n/ko.json 
+    - lib/l10n/ja.json 

@@ -3,6 +3,7 @@ import 'package:health_tracker/models/indicator_type.dart';
 import '../models/health_record.dart';
 import '../database/database_helper.dart';
 import 'package:intl/intl.dart';
+import '../utils/localization.dart'; // Import the localization utility
 
 class RecordFormScreen extends StatefulWidget {
   final IndicatorType type;
@@ -22,7 +23,6 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _majorValueController;
   late TextEditingController _minorValueController;
-  late TextEditingController _diastolicController;
   late DateTime _selectedDateTime;
 
   @override
@@ -32,7 +32,7 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
       text: widget.record?.majorValue.toString() ?? '',
     );
     _minorValueController = TextEditingController(
-      text: widget.record?.majorValue.toString() ?? '',
+      text: widget.record?.minorValue?.toString() ?? '',
     );
     _selectedDateTime = widget.record?.timestamp ?? DateTime.now();
   }
@@ -73,7 +73,7 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
         elevation: 0,
         backgroundColor: Colors.white,
         title: Text(
-          widget.record == null ? '添加记录' : '编辑记录',
+          widget.record == null ? Localization.translate('add_record') ?? 'Add Record' : Localization.translate('edit_record') ?? 'Edit Record',
           style: const TextStyle(
             color: Colors.black87,
             fontSize: 20,
@@ -92,7 +92,7 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
                 Card(
                   elevation: 0,
                   child: ListTile(
-                    title: const Text('记录时间'),
+                    title: Text(Localization.translate('record_time') ?? 'Record Time'),
                     subtitle: Text(
                       DateFormat('yyyy-MM-dd HH:mm').format(_selectedDateTime),
                     ),
@@ -130,7 +130,7 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
                       ),
                     ),
                     onPressed: _saveRecord,
-                    child: Text(widget.record == null ? '添加' : '保存'),
+                    child: Text(widget.record == null ? Localization.translate('add_record') ?? 'Add Record' : Localization.translate('save') ?? 'Save'), // Use localized string
                   ),
                 ),
               ],
@@ -165,7 +165,7 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
       keyboardType: TextInputType.number,
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return '请输入$label';
+          return Localization.translate('enter_value')?.replaceAll('{label}', label) ?? 'Please enter $label'; // Use localized string
         }
         return null;
       },
