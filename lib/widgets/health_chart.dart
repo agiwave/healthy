@@ -6,7 +6,7 @@ import '../models/health_record.dart';
 import '../models/indicator_type.dart';
 
 class HealthChart extends StatelessWidget {
-  final String type;
+  final IndicatorType type;
   final List<HealthRecord> records;
   final IndicatorType _selectedType;
   static final dateFormat = DateFormat('MM-dd HH:mm');
@@ -48,8 +48,8 @@ class HealthChart extends StatelessWidget {
 
     // 计算纵轴范围和间隔
     final yValues = records.expand<double>((record) => [
-      record.value1,
-      if (type == 'blood_pressure' && record.value2 != null) record.value2!,
+      record.majorValue,
+      if (type.isMultiValue && record.minorValue != null) record.minorValue!,
     ]).toList();
 
     // 确保有最小范围
@@ -59,22 +59,22 @@ class HealthChart extends StatelessWidget {
 
     return Column(
       children: [
-        if (type == 'blood_pressure')
+        if (type.isMultiValue)
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildLegendItem(_selectedType.value1Name, Colors.blue),
+                _buildLegendItem(_selectedType.majorValueName, Colors.blue),
                 const SizedBox(width: 20),
-                _buildLegendItem(_selectedType.value2Name!, Colors.red),
+                _buildLegendItem(_selectedType.minorValueName!, Colors.red),
               ],
             ),
           )
         else
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: _buildLegendItem(_selectedType.value1Name, Colors.blue),
+            child: _buildLegendItem(_selectedType.majorValueName, Colors.blue),
           ),
         Expanded(
           child: Padding(
@@ -126,20 +126,20 @@ class HealthChart extends StatelessWidget {
                           .difference(adjustedMinTime)
                           .inMinutes
                           .toDouble();
-                      return FlSpot(minutes, record.value1);
+                      return FlSpot(minutes, record.majorValue);
                     }).toList(),
                     isCurved: true,
                     color: Colors.blue,
                     dotData: const FlDotData(show: true),
                   ),
-                  if (type == 'blood_pressure')
+                  if (type.isMultiValue)
                     LineChartBarData(
                       spots: records.map((record) {
                         final minutes = record.timestamp
                             .difference(adjustedMinTime)
                             .inMinutes
                             .toDouble();
-                        return FlSpot(minutes, record.value2!);
+                        return FlSpot(minutes, record.minorValue!);
                       }).toList(),
                       isCurved: true,
                       color: Colors.red,

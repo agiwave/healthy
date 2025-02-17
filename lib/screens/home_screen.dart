@@ -92,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text(type.name),
                   )),
                   PopupMenuItem<IndicatorType>(
-                    value: IndicatorType(code: '__', name: '', unit:'', isMultiValue: false, value1Name: ''),
+                    value: IndicatorType(code: '__', name: '', unit:'', isMultiValue: false, majorValueName: ''),
                     child: const Row(
                       children: [
                         Icon(Icons.settings, size: 18),
@@ -138,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: HealthChart(
-                    type: _selectedType.code,
+                    type: _selectedType,
                     records: records,
                     selectedType: _selectedType,
                   ),
@@ -153,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: RecordList(
-                    type: _selectedType.code,
+                    type: _selectedType,
                     records: records,
                     onRecordDeleted: _refreshData,
                     onRecordEdited: _refreshData,
@@ -170,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
           await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => RecordFormScreen(type: _selectedType.code),
+              builder: (context) => RecordFormScreen(type: _selectedType),
             ),
           );
           _refreshData();

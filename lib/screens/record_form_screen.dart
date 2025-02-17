@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:health_tracker/models/indicator_type.dart';
 import '../models/health_record.dart';
 import '../database/database_helper.dart';
 import 'package:intl/intl.dart';
 
 class RecordFormScreen extends StatefulWidget {
-  final String type;
+  final IndicatorType type;
   final HealthRecord? record;
 
   const RecordFormScreen({
@@ -19,22 +20,19 @@ class RecordFormScreen extends StatefulWidget {
 
 class _RecordFormScreenState extends State<RecordFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _valueController;
-  late TextEditingController _systolicController;
+  late TextEditingController _majorValueController;
+  late TextEditingController _minorValueController;
   late TextEditingController _diastolicController;
   late DateTime _selectedDateTime;
 
   @override
   void initState() {
     super.initState();
-    _valueController = TextEditingController(
-      text: widget.record?.value1.toString() ?? '',
+    _majorValueController = TextEditingController(
+      text: widget.record?.majorValue.toString() ?? '',
     );
-    _systolicController = TextEditingController(
-      text: widget.record?.value1.toString() ?? '',
-    );
-    _diastolicController = TextEditingController(
-      text: widget.record?.value2?.toString() ?? '',
+    _minorValueController = TextEditingController(
+      text: widget.record?.majorValue.toString() ?? '',
     );
     _selectedDateTime = widget.record?.timestamp ?? DateTime.now();
   }
@@ -103,23 +101,23 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                if (widget.type == 'blood_pressure') ...[
+                if (widget.type.isMultiValue) ...[
                   _buildTextField(
-                    controller: _systolicController,
-                    label: '收缩压',
-                    suffix: 'mmHg',
+                    controller: _majorValueController,
+                    label: widget.type.majorValueName,
+                    suffix: widget.type.unit,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
-                    controller: _diastolicController,
-                    label: '舒张压',
-                    suffix: 'mmHg',
+                    controller: _minorValueController,
+                    label: widget.type.minorValueName!,
+                    suffix: widget.type.unit,
                   ),
                 ] else
                   _buildTextField(
-                    controller: _valueController,
-                    label: '心率',
-                    suffix: 'bpm',
+                    controller: _majorValueController,
+                    label: widget.type.majorValueName,
+                    suffix: widget.type.unit,
                   ),
                 const SizedBox(height: 32),
                 SizedBox(
@@ -179,12 +177,10 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
 
     final record = HealthRecord(
       id: widget.record?.id,
-      type: widget.type,
-      value1: widget.type == 'blood_pressure'
-          ? double.parse(_systolicController.text)
-          : double.parse(_valueController.text),
-      value2: widget.type == 'blood_pressure'
-          ? double.parse(_diastolicController.text)
+      type: widget.type.code,
+      majorValue: double.parse(_majorValueController.text),
+      minorValue: widget.type.isMultiValue
+          ? double.parse(_minorValueController.text)
           : null,
       timestamp: _selectedDateTime,
     );
@@ -202,9 +198,8 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
 
   @override
   void dispose() {
-    _valueController.dispose();
-    _systolicController.dispose();
-    _diastolicController.dispose();
+    _majorValueController.dispose();
+    _minorValueController.dispose();
     super.dispose();
   }
 } 

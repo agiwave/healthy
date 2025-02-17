@@ -1,15 +1,15 @@
 class HealthRecord {
   final int? id;
   final String type;
-  final double value1;  // 主要值（血压时为收缩压，心率时为心率值）
-  final double? value2; // 次要值（血压时为舒张压，心率时为null）
+  final double majorValue;  // Updated field name
+  final double? minorValue; // Updated field name
   final DateTime timestamp;
 
   HealthRecord({
     this.id,
     required this.type,
-    required this.value1,
-    this.value2,
+    required this.majorValue,  // Updated field name
+    this.minorValue,          // Updated field name
     required this.timestamp,
   });
 
@@ -17,8 +17,8 @@ class HealthRecord {
     return {
       'id': id,
       'type': type,
-      'value1': value1,
-      'value2': value2,
+      'major_value': majorValue,  // Updated field name
+      'minor_value': minorValue,    // Updated field name
       'timestamp': timestamp.toIso8601String(),
     };
   }
@@ -27,8 +27,8 @@ class HealthRecord {
     return HealthRecord(
       id: map['id'],
       type: map['type'],
-      value1: map['value1'],
-      value2: map['value2'],
+      majorValue: map['major_value'],  // Updated field name
+      minorValue: map['minor_value'],    // Updated field name
       timestamp: DateTime.parse(map['timestamp']),
     );
   }

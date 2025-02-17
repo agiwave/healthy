@@ -52,8 +52,8 @@ class DatabaseHelper {
               'name': '血压',
               'unit': 'mmHg',
               'is_multi_value': 1,
-              'value1_name': '收缩压',
-              'value2_name': '舒张压'
+              'major_value_name': '收缩压',
+              'minor_value_name': '舒张压'
             });
 
             await db.insert('indicator_types', {
@@ -61,8 +61,8 @@ class DatabaseHelper {
               'name': '心率',
               'unit': 'bpm',
               'is_multi_value': 0,
-              'value1_name': '心率值',
-              'value2_name': null
+              'major_value_name': '心率值',
+              'minor_value_name': null
             });
           }
         }
@@ -71,7 +71,7 @@ class DatabaseHelper {
   }
 
   Future<void> _createDB(Database db, int version) async {
-    // 创建指标类型表
+    // Create indicator_types table with new field names
     await db.execute('''
       CREATE TABLE indicator_types(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -79,18 +79,18 @@ class DatabaseHelper {
         name TEXT NOT NULL,
         unit TEXT NOT NULL,
         is_multi_value INTEGER NOT NULL DEFAULT 0,
-        value1_name TEXT NOT NULL,
-        value2_name TEXT
+        major_value_name TEXT NOT NULL,
+        minor_value_name TEXT
       )
     ''');
 
-    // 创建健康记录表
+    // Create health_records table with new field names
     await db.execute('''
       CREATE TABLE health_records(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         type TEXT NOT NULL,
-        value1 REAL NOT NULL,
-        value2 REAL,
+        major_value REAL NOT NULL,
+        minor_value REAL,
         timestamp TEXT NOT NULL,
         FOREIGN KEY (type) REFERENCES indicator_types(code)
       )

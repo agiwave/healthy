@@ -162,8 +162,8 @@ class _IndicatorTypeDialogState extends State<IndicatorTypeDialog> {
     _codeController = TextEditingController(text: widget.type?.code ?? '');
     _nameController = TextEditingController(text: widget.type?.name ?? '');
     _unitController = TextEditingController(text: widget.type?.unit ?? '');
-    _value1NameController = TextEditingController(text: widget.type?.value1Name ?? '');
-    _value2NameController = TextEditingController(text: widget.type?.value2Name ?? '');
+    _value1NameController = TextEditingController(text: widget.type?.majorValueName ?? '');
+    _value2NameController = TextEditingController(text: widget.type?.minorValueName ?? '');
     _isMultiValue = widget.type?.isMultiValue ?? false;
   }
 
@@ -229,8 +229,8 @@ class _IndicatorTypeDialogState extends State<IndicatorTypeDialog> {
               name: _nameController.text,
               unit: _unitController.text,
               isMultiValue: _isMultiValue,
-              value1Name: _value1NameController.text,
-              value2Name: _isMultiValue ? _value2NameController.text : null,
+              majorValueName: _value1NameController.text,
+              minorValueName: _isMultiValue ? _value2NameController.text : null,
             );
 
             Navigator.pop(context, type);

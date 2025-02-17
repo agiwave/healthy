@@ -6,7 +6,7 @@ import '../screens/record_form_screen.dart';
 import 'package:intl/intl.dart';
 
 class RecordList extends StatelessWidget {
-  final String type;
+  final IndicatorType type;
   final List<HealthRecord> records;
   final VoidCallback onRecordDeleted;
   final VoidCallback onRecordEdited;
@@ -68,9 +68,9 @@ class RecordList extends StatelessWidget {
           child: ListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(
-              type == 'blood_pressure'
-                  ? '${record.value1}/${record.value2} ${selectedType.unit}'
-                  : '${record.value1} ${selectedType.unit}',
+              type.isMultiValue
+                  ? '${record.majorValue}/${record.minorValue} ${selectedType.unit}'
+                  : '${record.majorValue} ${selectedType.unit}',
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
