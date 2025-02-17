@@ -176,4 +176,14 @@ class DatabaseHelper {
     _updateController.add(null); // Notify listeners
     return result;
   }
+
+  // Add the clearRecords method
+  Future<void> clearRecords(String indicatorCode) async {
+    final db = await database;
+    await db.delete(
+      'health_records',
+      where: 'type = ?',
+      whereArgs: [indicatorCode],
+    );
+  }
 } 

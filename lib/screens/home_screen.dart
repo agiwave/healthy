@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Import for Clipboard
 import '../widgets/health_chart.dart';
 import '../widgets/record_list.dart';
 import 'record_form_screen.dart';
@@ -54,6 +55,82 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Future<void> _exportData() async {
+    // Fetch the data for the selected indicator
+    final records = await DatabaseHelper.instance.getRecords(_selectedType.code);
+    
+    // Convert records to a string format (e.g., CSV)
+    StringBuffer buffer = StringBuffer();
+    if(_selectedType.isMultiValue){
+      buffer.writeln('Timestamp,Major Value,Minor Value'); // Header
+      for (var record in records) {
+        buffer.writeln('${record.timestamp},${record.majorValue},${record.minorValue}');
+      }
+    }else{
+      buffer.writeln('Timestamp,Major Value'); // Header
+      for (var record in records) {
+        buffer.writeln('${record.timestamp},${record.majorValue}');
+      }
+    }
+
+    // Copy to clipboard
+    await Clipboard.setData(ClipboardData(text: buffer.toString()));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('数据已导出到剪贴板')), // "Data exported to clipboard"
+    );
+  }
+
+  Future<void> _importData() async {
+    // Get data from clipboard
+    final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+    if (clipboardData?.text != null) {
+      String? data = clipboardData!.text;
+      if (data != null && data.isNotEmpty) {
+        // Parse the data (assuming CSV format)
+        List<String> lines = data.split('\n');
+        for (var line in lines.skip(1)) { // Skip header
+          if (line.isNotEmpty) {
+            List<String> values = line.split(',');
+            // Assuming the format is correct, you can create a HealthRecord
+            DateTime timestamp = DateTime.parse(values[0]);
+            double majorValue = double.parse(values[1]);
+            double? minorValue = values.length > 2 ? double.parse(values[2]) : null;
+
+            // Insert into the database
+            await DatabaseHelper.instance.insertRecord(HealthRecord(
+              timestamp: timestamp,
+              majorValue: majorValue,
+              minorValue: minorValue,
+              type: _selectedType.code,
+            ));
+          }
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('数据已导入')), // "Data imported"
+        );
+
+        // Refresh the data list and chart after import
+        _refreshData();
+      }
+    } else {
+      // Handle the case where clipboard data is null or empty
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('剪贴板没有数据')), // "No data in clipboard"
+      );
+    }
+  }
+
+  Future<void> _clearData() async {
+    // Clear data for the selected indicator
+    await DatabaseHelper.instance.clearRecords(_selectedType.code);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('数据已清空')), // "Data cleared"
+    );
+
+    // Refresh the data list and chart after clearing
+    _refreshData();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_isInitialized) {
@@ -68,53 +145,87 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
         backgroundColor: Colors.white,
         centerTitle: true,
-        title: Text(
-          _selectedType.name,
-          style: const TextStyle(
-            color: Colors.black87,
-            fontSize: 20,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        actions: [
-          FutureBuilder<List<IndicatorType>>(
-            future: DatabaseHelper.instance.getIndicatorTypes(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const CircularProgressIndicator();
-              }
-              final types = snapshot.data!;
-              return PopupMenuButton<IndicatorType>(
-                icon: const Icon(Icons.more_vert, color: Colors.black87),
-                itemBuilder: (context) => [
-                  ...types.map((type) => PopupMenuItem(
-                    value: type,
-                    child: Text(type.name),
-                  )),
-                  PopupMenuItem<IndicatorType>(
-                    value: IndicatorType(code: '__', name: '', unit:'', isMultiValue: false, majorValueName: ''),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.settings, size: 18),
-                        SizedBox(width: 8),
-                        Text('管理指标'),
-                      ],
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            FutureBuilder<List<IndicatorType>>(
+              future: DatabaseHelper.instance.getIndicatorTypes(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const CircularProgressIndicator();
+                }
+                final types = snapshot.data!;
+                
+                return PopupMenuButton<IndicatorType>(
+                  child: Text(
+                    _selectedType.name,
+                    style: const TextStyle(
+                      color: Colors.black87,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                ],
-                onSelected: (value) {
-                  if (value.code == '__') {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const IndicatorTypesScreen(),
+                  itemBuilder: (context) => [
+                    ...types.map((type) => PopupMenuItem(
+                      value: type,
+                      child: Text(type.name),
+                    )),
+                    PopupMenuItem<IndicatorType>(
+                      value: IndicatorType(code: '__', name: '', unit: '', isMultiValue: false, majorValueName: ''),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.settings, size: 18),
+                          SizedBox(width: 8),
+                          Text('管理指标'), // "Manage Indicators"
+                        ],
                       ),
-                    ).then((_) => _refreshData());
-                  } else {
-                    _onTypeChanged(value);
-                  }
-                },
-              );
+                    ),
+                  ],
+                  onSelected: (value) {
+                    if (value.code == '__') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const IndicatorTypesScreen(),
+                        ),
+                      ).then((_) => _refreshData());
+                    } else {
+                      _onTypeChanged(value);
+                    }
+                  },
+                );
+              },
+            ),
+          ],
+        ),
+        actions: [
+          PopupMenuButton(
+            icon: const Icon(Icons.add), // Plus icon
+            itemBuilder: (context) => [
+              const PopupMenuItem<String>(
+                value: 'export',
+                child: Text('导出'), // "Export Data"
+              ),
+              const PopupMenuItem<String>(
+                value: 'import',
+                child: Text('导入'), // "Import Data"
+              ),
+              const PopupMenuItem<String>(
+                value: 'clear',
+                child: Text('清空'), // "Clear Data"
+              ),
+            ],
+            onSelected: (value) {
+              if (value == 'export') {
+                // Handle export and import actions
+                _exportData(); // Call export function
+              } else if (value == 'import') {
+                // Call import function
+                _importData(); // Call import function
+              } else if (value == 'clear') {
+                // Call clear data function
+                _clearData(); // Call clear data function
+              }
             },
           ),
         ],
@@ -176,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _refreshData();
         },
         icon: const Icon(Icons.add),
-        label: const Text('添加记录'),
+        label: const Text('添加记录'), // "Add Record"
         elevation: 2,
       ),
     );

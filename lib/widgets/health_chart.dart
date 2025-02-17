@@ -107,7 +107,7 @@ class HealthChart extends StatelessWidget {
                       interval: yInterval,
                       reservedSize: 40,
                       getTitlesWidget: (value, meta) {
-                        return Text(value.toInt().toString());
+                        return Text(value.round().toString());
                       },
                     ),
                   ),
