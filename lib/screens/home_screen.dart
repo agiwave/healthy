@@ -5,6 +5,7 @@ import 'record_form_screen.dart';
 import '../models/indicator_type.dart';
 import '../database/database_helper.dart';
 import 'indicator_types_screen.dart';
+import '../models/health_record.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,14 +16,13 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String _selectedType = 'blood_pressure';
-  final _chartKey = GlobalKey<State>();  // 添加 key 用于刷新图表
-  final _listKey = GlobalKey<State>();   // 添加 key 用于刷新列表
-  bool _isInitialized = false;  // 添加初始化标志
+  bool _isInitialized = false;
+  late Future<List<HealthRecord>> _recordsFuture;
 
   @override
   void initState() {
     super.initState();
-    _initDatabase();  // 添加初始化函数
+    _initDatabase();
   }
 
   Future<void> _initDatabase() async {
@@ -30,8 +30,26 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) {
       setState(() {
         _isInitialized = true;
+        _loadRecords();
       });
     }
+  }
+
+  void _loadRecords() {
+    _recordsFuture = DatabaseHelper.instance.getRecords(_selectedType);
+  }
+
+  void _refreshData() {
+    setState(() {
+      _loadRecords();
+    });
+  }
+
+  void _onTypeChanged(String type) {
+    setState(() {
+      _selectedType = type;
+      _loadRecords();
+    });
   }
 
   @override
@@ -97,11 +115,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         MaterialPageRoute(
                           builder: (context) => const IndicatorTypesScreen(),
                         ),
-                      ).then((_) => setState(() {}));
+                      ).then((_) => _refreshData());  // 管理指标后刷新数据
                     } else {
-                      setState(() {
-                        _selectedType = value;
-                      });
+                      _onTypeChanged(value);  // 使用新方法处理类型切换
                     }
                   },
                 );
@@ -110,37 +126,49 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            flex: 2,
-            child: Card(
-              margin: const EdgeInsets.all(16.0),
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+      body: FutureBuilder<List<HealthRecord>>(
+        future: _recordsFuture,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final records = snapshot.data!;
+          return Column(
+            children: [
+              Expanded(
+                flex: 2,
+                child: Card(
+                  margin: const EdgeInsets.all(16.0),
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: HealthChart(
+                    type: _selectedType,
+                    records: records,
+                  ),
+                ),
               ),
-              child: HealthChart(
-                key: _chartKey,
-                type: _selectedType,
+              Expanded(
+                flex: 3,
+                child: Card(
+                  margin: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: RecordList(
+                    type: _selectedType,
+                    records: records,
+                    onRecordDeleted: _refreshData,
+                    onRecordEdited: _refreshData,
+                  ),
+                ),
               ),
-            ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Card(
-              margin: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: RecordList(
-                key: _listKey,
-                type: _selectedType,
-              ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
@@ -150,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (context) => RecordFormScreen(type: _selectedType),
             ),
           );
-          setState(() {});
+          _refreshData();  // 使用刷新方法替代 setState
         },
         icon: const Icon(Icons.add),
         label: const Text('添加记录'),
