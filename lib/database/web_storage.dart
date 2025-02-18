@@ -6,7 +6,7 @@ StorageInterface createStorage() => WebStorage.instance;
 
 class WebStorage implements StorageInterface {
   static final WebStorage instance = WebStorage._init();
-  
+
   WebStorage._init();
 
   @override
@@ -16,7 +16,7 @@ class WebStorage implements StorageInterface {
 
   @override
   Future<int> insertRecord(HealthRecord record) async {
-    window.localStorage[DateTime.now().millisecondsSinceEpoch.toString()] = 
+    window.localStorage[DateTime.now().millisecondsSinceEpoch.toString()] =
         record.toMap().toString();
     return DateTime.now().millisecondsSinceEpoch;
   }
@@ -24,7 +24,8 @@ class WebStorage implements StorageInterface {
   @override
   Future<List<HealthRecord>> getRecords(String type) async {
     return window.localStorage.entries
-        .map((e) => HealthRecord.fromMap(Map<String, dynamic>.from(e.value as Map)))
+        .map((e) =>
+            HealthRecord.fromMap(Map<String, dynamic>.from(e.value as Map)))
         .where((record) => record.type == type)
         .toList();
   }
@@ -40,4 +41,4 @@ class WebStorage implements StorageInterface {
     window.localStorage.remove(id.toString());
     return id;
   }
-} 
+}
