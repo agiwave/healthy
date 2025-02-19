@@ -58,12 +58,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _exportData() async {
-    final records = await DatabaseHelper.instance.getRecords(_selectedType.code);
+    final records =
+        await DatabaseHelper.instance.getRecords(_selectedType.code);
     StringBuffer buffer = StringBuffer();
     if (_selectedType.isMultiValue) {
       buffer.writeln('Timestamp,Major Value,Minor Value'); // Header
       for (var record in records) {
-        buffer.writeln('${record.timestamp},${record.majorValue},${record.minorValue}');
+        buffer.writeln(
+            '${record.timestamp},${record.majorValue},${record.minorValue}');
       }
     } else {
       buffer.writeln('Timestamp,Major Value'); // Header
@@ -84,12 +86,14 @@ class _HomeScreenState extends State<HomeScreen> {
       String? data = clipboardData!.text;
       if (data != null && data.isNotEmpty) {
         List<String> lines = data.split('\n');
-        for (var line in lines.skip(1)) { // Skip header
+        for (var line in lines.skip(1)) {
+          // Skip header
           if (line.isNotEmpty) {
             List<String> values = line.split(',');
             DateTime timestamp = DateTime.parse(values[0]);
             double majorValue = double.parse(values[1]);
-            double? minorValue = values.length > 2 ? double.parse(values[2]) : null;
+            double? minorValue =
+                values.length > 2 ? double.parse(values[2]) : null;
 
             await DatabaseHelper.instance.insertRecord(HealthRecord(
               timestamp: timestamp,
@@ -121,7 +125,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _refreshData();
   }
 
-
   @override
   Widget build(BuildContext context) {
     if (!_isInitialized) {
@@ -146,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   return const CircularProgressIndicator();
                 }
                 final types = snapshot.data!;
-                
+
                 return PopupMenuButton<IndicatorType>(
                   child: Text(
                     _selectedType.name,
@@ -158,16 +161,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   itemBuilder: (context) => [
                     ...types.map((type) => PopupMenuItem(
-                      value: type,
-                      child: Text(type.name),
-                    )),
+                          value: type,
+                          child: Text(type.name),
+                        )),
                     PopupMenuItem<IndicatorType>(
-                      value: IndicatorType(code: '__', name: '', unit: '', isMultiValue: false, majorValueName: ''),
+                      value: IndicatorType(
+                          code: '__',
+                          name: '',
+                          unit: '',
+                          isMultiValue: false,
+                          majorValueName: ''),
                       child: Row(
                         children: [
                           const Icon(Icons.settings, size: 18),
                           const SizedBox(width: 8),
-                          Text(Localization.translate('manage_indicators')), // Use localized string
+                          Text(Localization.translate(
+                              'manage_indicators')), // Use localized string
                         ],
                       ),
                     ),
@@ -195,19 +204,23 @@ class _HomeScreenState extends State<HomeScreen> {
             itemBuilder: (context) => [
               PopupMenuItem<String>(
                 value: 'export',
-                child: Text(Localization.translate('export')), // Use localized string
+                child: Text(
+                    Localization.translate('export')), // Use localized string
               ),
               PopupMenuItem<String>(
                 value: 'import',
-                child: Text(Localization.translate('import')), // Use localized string
+                child: Text(
+                    Localization.translate('import')), // Use localized string
               ),
               PopupMenuItem<String>(
                 value: 'clear',
-                child: Text(Localization.translate('clear')), // Use localized string
+                child: Text(
+                    Localization.translate('clear')), // Use localized string
               ),
               PopupMenuItem<String>(
                 value: 'change_language',
-                child: Text(Localization.translate('change_language')), // Use localized string
+                child: Text(Localization.translate(
+                    'change_language')), // Use localized string
               ),
             ],
             onSelected: (value) {
@@ -275,19 +288,21 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => RecordFormScreen(type: _selectedType),
-            ),
-          );
-          _refreshData();
-        },
-        icon: const Icon(Icons.add),
-        label: Text(Localization.translate('add_record')), // Use localized string
-        elevation: 2,
+      floatingActionButton: Align(
+        alignment: Alignment.bottomCenter,
+        child: FloatingActionButton(
+          onPressed: () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => RecordFormScreen(type: _selectedType),
+              ),
+            );
+            _refreshData();
+          },
+          child: const Icon(Icons.add),
+          elevation: 2,
+        ),
       ),
     );
   }
