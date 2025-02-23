@@ -19,6 +19,8 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   provider: ^6.0.0
+  excel: ^2.1.0
+  file_picker: ^5.3.1
 
 dev_dependencies:
   flutter_test:
@@ -45,4 +47,4 @@ flutter:
     - lib/l10n/en.json
     - lib/l10n/zh.json 
     - lib/l10n/ko.json 
-    - lib/l10n/ja.json 
+    - lib/l10n/ja.json

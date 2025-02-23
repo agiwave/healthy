@@ -9,6 +9,10 @@ import '../database/database_helper.dart';
 import 'indicator_types_screen.dart';
 import '../models/health_record.dart';
 import '../utils/localization.dart'; // Import the localization utility
+import 'package:file_picker/file_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:excel/excel.dart';
+import 'dart:io';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -60,40 +64,95 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _exportData() async {
     final records =
         await DatabaseHelper.instance.getRecords(_selectedType.code);
-    StringBuffer buffer = StringBuffer();
-    if (_selectedType.isMultiValue) {
-      buffer.writeln('Timestamp,Major Value,Minor Value'); // Header
-      for (var record in records) {
-        buffer.writeln(
-            '${record.timestamp},${record.majorValue},${record.minorValue}');
-      }
-    } else {
-      buffer.writeln('Timestamp,Major Value'); // Header
-      for (var record in records) {
-        buffer.writeln('${record.timestamp},${record.majorValue}');
+
+    // Create Excel workbook and sheet
+    var excel = Excel.createExcel();
+    Sheet sheet = excel[excel.getDefaultSheet()!];
+
+    // Add header row
+    List<String> headers = _selectedType.isMultiValue
+        ? [
+            'Timestamp',
+            _selectedType.majorValueName,
+            _selectedType.minorValueName ?? ''
+          ]
+        : ['Timestamp', _selectedType.majorValueName];
+    for (var i = 0; i < headers.length; i++) {
+      sheet
+          .cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0))
+          .value = headers[i];
+    }
+
+    // Add data rows
+    for (var i = 0; i < records.length; i++) {
+      var record = records[i];
+      sheet
+          .cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: i + 1))
+          .value = DateFormat('yyyy-MM-dd HH:mm').format(record.timestamp);
+      sheet
+          .cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: i + 1))
+          .value = record.majorValue;
+
+      if (_selectedType.isMultiValue && record.minorValue != null) {
+        sheet
+            .cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: i + 1))
+            .value = record.minorValue;
       }
     }
 
-    await Clipboard.setData(ClipboardData(text: buffer.toString()));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(Localization.translate('data_cleared'))),
-    );
+    // Save file
+    var fileBytes = excel.encode();
+    if (fileBytes != null) {
+      final String fileName =
+          '${_selectedType.name}_${DateFormat('yyyyMMdd_HHmm').format(DateTime.now())}.xlsx';
+      final String? outputFile = await FilePicker.platform.saveFile(
+        dialogTitle: Localization.translate('save_excel_file'),
+        fileName: fileName,
+        allowedExtensions: ['xlsx'],
+        type: FileType.custom,
+      );
+
+      if (outputFile != null) {
+        await File(outputFile).writeAsBytes(fileBytes);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(Localization.translate('data_exported'))),
+        );
+      }
+    }
   }
 
   Future<void> _importData() async {
-    final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
-    if (clipboardData?.text != null) {
-      String? data = clipboardData!.text;
-      if (data != null && data.isNotEmpty) {
-        List<String> lines = data.split('\n');
-        for (var line in lines.skip(1)) {
-          // Skip header
-          if (line.isNotEmpty) {
-            List<String> values = line.split(',');
-            DateTime timestamp = DateTime.parse(values[0]);
-            double majorValue = double.parse(values[1]);
-            double? minorValue =
-                values.length > 2 ? double.parse(values[2]) : null;
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['xlsx'],
+        allowMultiple: false,
+      );
+
+      if (result != null) {
+        var file = File(result.files.single.path!);
+        var bytes = await file.readAsBytes();
+        var excel = Excel.decodeBytes(bytes);
+
+        var sheet = excel.tables[excel.getDefaultSheet()!];
+        if (sheet == null) throw Exception('No sheet found in Excel file');
+
+        // Skip header row and process data
+        for (var row in sheet.rows.skip(1)) {
+          if (row.isEmpty) continue;
+
+          try {
+            var timestamp = DateFormat('yyyy-MM-dd HH:mm')
+                .parse(row[0]?.value.toString() ?? '');
+            var majorValue = double.parse(row[1]?.value.toString() ?? '');
+            double? minorValue;
+
+            if (_selectedType.isMultiValue && row.length > 2) {
+              var minorStr = row[2]?.value.toString();
+              if (minorStr != null && minorStr.isNotEmpty) {
+                minorValue = double.parse(minorStr);
+              }
+            }
 
             await DatabaseHelper.instance.insertRecord(HealthRecord(
               timestamp: timestamp,
@@ -101,17 +160,21 @@ class _HomeScreenState extends State<HomeScreen> {
               minorValue: minorValue,
               type: _selectedType.code,
             ));
+          } catch (e) {
+            print('Error processing row: $e');
+            continue;
           }
         }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(Localization.translate('data_imported'))),
         );
 
         _refreshData();
       }
-    } else {
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(Localization.translate('no_data_in_clipboard'))),
+        SnackBar(content: Text(Localization.translate('import_error'))),
       );
     }
   }
@@ -203,33 +266,29 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.add), // Plus icon
             itemBuilder: (context) => [
               PopupMenuItem<String>(
-                value: 'export',
-                child: Text(
-                    Localization.translate('export')), // Use localized string
+                value: 'export_excel',
+                child: Text(Localization.translate('export_excel')),
               ),
               PopupMenuItem<String>(
-                value: 'import',
-                child: Text(
-                    Localization.translate('import')), // Use localized string
+                value: 'import_excel',
+                child: Text(Localization.translate('import_excel')),
               ),
               PopupMenuItem<String>(
                 value: 'clear',
-                child: Text(
-                    Localization.translate('clear')), // Use localized string
+                child: Text(Localization.translate('clear')),
               ),
               PopupMenuItem<String>(
                 value: 'change_language',
-                child: Text(Localization.translate(
-                    'change_language')), // Use localized string
+                child: Text(Localization.translate('change_language')),
               ),
             ],
             onSelected: (value) {
-              if (value == 'export') {
-                _exportData(); // Call export function
-              } else if (value == 'import') {
-                _importData(); // Call import function
+              if (value == 'export_excel') {
+                _exportData();
+              } else if (value == 'import_excel') {
+                _importData();
               } else if (value == 'clear') {
-                _clearData(); // Call clear data function
+                _clearData();
               } else if (value == 'change_language') {
                 Navigator.push(
                   context,
@@ -288,8 +347,8 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
       ),
-      floatingActionButton: Align(
-        alignment: Alignment.bottomCenter,
+      floatingActionButton: Container(
+        margin: const EdgeInsets.only(bottom: 16.0),
         child: FloatingActionButton(
           onPressed: () async {
             await Navigator.push(
@@ -300,8 +359,10 @@ class _HomeScreenState extends State<HomeScreen> {
             );
             _refreshData();
           },
-          child: const Icon(Icons.add),
-          elevation: 2,
+          child: const Icon(Icons.add, size: 24),
+          elevation: 4,
+          shape: const CircleBorder(),
+          backgroundColor: Colors.teal[400],
         ),
       ),
     );

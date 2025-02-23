@@ -1,7 +1,7 @@
 {
   "app_title": "健康トラッカー",
-  "export": "エクスポート",
-  "import": "インポート",
+  "export_excel": "Excelをエクスポート",
+  "import_excel": "Excelをインポート",
   "clear": "クリア",
   "data_cleared": "データがクリアされました",
   "data_imported": "データがインポートされました",

@@ -1,7 +1,7 @@
 {
   "app_title": "Health Tracker",
-  "export": "Export",
-  "import": "Import",
+  "export_excel": "Export Excel",
+  "import_excel": "Import Excel",
   "clear": "Clear",
   "data_cleared": "Data cleared",
   "data_imported": "Data imported",

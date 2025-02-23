@@ -1,7 +1,7 @@
 {
   "app_title": "건강 추적기",
-  "export": "내보내기",
-  "import": "가져오기",
+  "export_excel": "Excel 내보내기",
+  "import_excel": "Excel 가져오기",
   "clear": "지우기",
   "data_cleared": "데이터가 지워졌습니다",
   "data_imported": "데이터가 가져와졌습니다",
